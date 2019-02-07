@@ -1,0 +1,133 @@
+#!/bin/bash
+
+DOCKER=`command -v docker`
+CONFIG_DIR=.alphadrive
+CONFIG=$HOME/$CONFIG_DIR
+SUDO_REQUIRED=false
+
+#trap 'kill $(jobs -p)' EXIT
+
+safe_type() {
+    type $1 > /dev/null 2>&1
+}
+
+check_curl() {
+    if ! safe_type curl ; then
+        echo "The 'curl' utilitiy is a required dependency. Please install with your package manager."
+        exit 100
+    fi
+}
+check_curl
+
+BROWSER_WARNING=
+
+get_browser() {
+    URL=$1
+    if [ -z "$BROWSER" ]; then
+        if safe_type xdg-open ; then
+            BROWSER=xdg-open
+        elif safe_type gnome-open ; then
+            BROWSER=gnome-open
+        elif safe_type open ; then
+            BROWSER=open
+        fi
+    fi
+    if [ ! -z "$BROWSER" ]; then
+        echo $BROWSER
+    fi
+}
+
+BASE_URL=http://localhost:9999
+
+browser_warning_message() {
+    MESSAGE=${1:-continue}
+    echo "[WARNING] Unable to determine browser. 
+          Please visit urls in your browser when prompted below for $MESSAGE."
+}
+
+start_url_open() {
+    BROWSER_LAUNCH=$1
+    URI=$2
+    while sleep 1; do
+        if curl -s $BASE_URL > /dev/null ; then
+            $BROWSER_LAUNCH $BASE_URL/$URI $MESSAGE
+            break;
+        fi
+    done
+}
+
+docker_check () {
+    if [ -z "$DOCKER" ]; then
+        echo "Docker doesn't seem to be installed!
+AlphaDrive requires a local docker installation. Please
+visit https://help.alphadrive.ai for more info."
+        exit 100
+    fi
+    if docker ps 2>&1 | grep -q "permission denied" ; then
+        echo "[WARNING] Your docker appears to require root access. We will use sudo to execute your agent."
+        SUDO_REQUIRED=true
+    fi
+}
+
+config_check() {
+    if [ ! -d "$CONFIG" ]; then
+        echo "[INFO] Initializing alphadrive config in $CONFIG"
+        mkdir $CONFIG
+    fi
+}
+
+docker_check
+
+SUDO_PREFIX=
+if [ "$SUDO_REQUIRED" = true ];then
+   SUDO_PREFIX=sudo
+fi
+
+DOCKER_NAME="alphadrive_docker.$$"
+
+trap "docker kill $DOCKER_NAME 2>/dev/null" TERM INT
+
+if [ "$1" == "--" ]; then
+    shift
+    ENTRYPOINT="--entrypoint $1"
+    shift
+fi
+
+if [ ! -z "$ALPHADRIVE_CLI_SRC" ]; then
+    DEV_MOUNTS="-v $ALPHADRIVE_CLI_SRC:/home/carla/cli"
+    if [ -z "$ENTRYPOINT" ]; then
+        ENTRYPOINT="--entrypoint /home/carla/cli/bin/run"
+    fi
+fi
+
+ENV_SETTINGS=
+if [ ! -z "$ALPHA_API_HOST" ]; then
+    ENV_SETTINGS="$ENV_SETTINGS -e ALPHA_API_HOST=$ALPHA_API_HOST"
+fi
+if [ ! -z "$ALPHADRIVE_UI" ]; then
+    ENV_SETTINGS="$ENV_SETTINGS -e ALPHADRIVE_UI=$ALPHADRIVE_UI"
+fi
+
+
+BROWSER_LAUNCH=$(get_browser)
+
+MOUNTS="$DEV_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR"
+IMAGE=alphadrive/cli:0.5.0
+
+if [ "$1" = "login" ]; then
+    if [ -z "$BROWSER_LAUNCH" ]; then
+        browser_warning_message authentication
+    else
+        start_url_open $BROWSER_LAUNCH login &
+    fi
+elif [ "$1" = "drive" ]; then
+    if [ -z "$BROWSER_LAUNCH" ]; then
+        browser_warning_message "viewing your session"
+    else
+        start_url_open $BROWSER_LAUNCH vnc &
+    fi
+fi
+
+DOCKER_CMD="docker run --name $DOCKER_NAME --rm --init $ENV_SETTINGS -p 9999:9999 "
+
+$SUDO_PREFIX $DOCKER_CMD -it $MOUNTS $ENTRYPOINT $IMAGE $@
