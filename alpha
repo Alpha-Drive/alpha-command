@@ -13,7 +13,7 @@ safe_type() {
 
 check_curl() {
     if ! safe_type curl ; then
-        echo "The 'curl' utilitiy is a required dependency. Please install with your package manager."
+        echo "The 'curl' utility is a required dependency. Please install with your package manager."
         exit 100
     fi
 }
