@@ -112,7 +112,7 @@ fi
 BROWSER_LAUNCH=$(get_browser)
 
 MOUNTS="$DEV_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR"
-IMAGE=alphadrive/cli:0.5.3
+IMAGE=alphadrive/cli:0.5.4
 
 if [ "$1" = "login" ]; then
     if [ -z "$BROWSER_LAUNCH" ]; then
@@ -120,12 +120,12 @@ if [ "$1" = "login" ]; then
     else
         start_url_open $BROWSER_LAUNCH login &
     fi
-elif [ "$1" = "drive" ]; then
-    if [ -z "$BROWSER_LAUNCH" ]; then
-        browser_warning_message "viewing your session"
-    else
-        start_url_open $BROWSER_LAUNCH vnc &
-    fi
+#elif [ "$1" = "drive" ]; then
+    # if [ -z "$BROWSER_LAUNCH" ]; then
+    #     browser_warning_message "viewing your session"
+    # else
+    #     start_url_open $BROWSER_LAUNCH vnc &
+    # fi
 fi
 
 DOCKER_CMD="docker run --name $DOCKER_NAME --rm --init $ENV_SETTINGS -p 9999:9999 "
