@@ -93,14 +93,14 @@ if [ "$1" == "--" ]; then
     shift
 fi
 
-if [ ! -z "$ALPHADRIVE_CLI_SRC" ]; then
+if [ -d "$ALPHADRIVE_CLI_SRC" ]; then
     DEV_MOUNTS="-v $ALPHADRIVE_CLI_SRC:/home/carla/cli"
     if [ -z "$ENTRYPOINT" ]; then
         ENTRYPOINT="--entrypoint /home/carla/cli/bin/run"
     fi
 fi
 
-ENV_SETTINGS=
+ENV_SETTINGS=" -e LC_ALL=C "
 if [ ! -z "$ALPHA_API_HOST" ]; then
     ENV_SETTINGS="$ENV_SETTINGS -e ALPHA_API_HOST=$ALPHA_API_HOST"
 fi
@@ -112,7 +112,7 @@ fi
 BROWSER_LAUNCH=$(get_browser)
 
 MOUNTS="$DEV_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR"
-IMAGE=alphadrive/cli:0.5.4
+IMAGE=${IMAGE:-alphadrive/cli:0.5.5}
 
 if [ "$1" = "login" ]; then
     if [ -z "$BROWSER_LAUNCH" ]; then
