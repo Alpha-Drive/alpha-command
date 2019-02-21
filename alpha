@@ -135,7 +135,7 @@ fi
 BROWSER_LAUNCH=$(get_browser)
 
 MOUNTS="$DEV_MOUNTS $X_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR"
-IMAGE=${IMAGE:-alphadrive/cli:0.5.6}
+IMAGE=${IMAGE:-alphadrive/cli:0.5.7}
 
 if [ "$1" = "login" ]; then
     if [ -z "$BROWSER_LAUNCH" ]; then
