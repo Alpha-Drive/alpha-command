@@ -120,9 +120,16 @@ if [ -d "$ALPHADRIVE_CLI_SRC" ]; then
 fi
 
 ENV_SETTINGS=" -e LC_ALL=C "
+NET=""
 if [ ! -z "$DISPLAY" ]; then
-    ENV_SETTINGS="$ENV_SETTINGS -e DISPLAY=host.docker.internal:${DISPLAY##:}"
-    wait_on_cid $CID_FILE 3 xhost_for_container &
+    if [ "$(uname)" = "Linux" ]; then
+        NET="--net=host"
+        ENV_SETTINGS="$ENV_SETTINGS -e DISPLAY=$DISPLAY "
+    elif [ "$(uname)" = "Darwin" ]; then
+        NET=" -p 9999:9999 "
+        ENV_SETTINGS="$ENV_SETTINGS -e DISPLAY=host.docker.internal:${DISPLAY##:}"
+        wait_on_cid $CID_FILE 3 xhost_for_container &
+    fi
 fi
 
 if [ ! -z "$ALPHA_API_HOST" ]; then
@@ -151,6 +158,6 @@ if [ "$1" = "login" ]; then
     # fi
 fi
 
-DOCKER_CMD="docker run --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS -p 9999:9999 "
+DOCKER_CMD="docker run $NET  --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS "
 
 $SUDO_PREFIX $DOCKER_CMD -it $MOUNTS $ENTRYPOINT $IMAGE $@
