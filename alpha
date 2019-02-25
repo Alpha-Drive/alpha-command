@@ -126,10 +126,13 @@ if [ ! -z "$DISPLAY" ]; then
         NET="--net=host"
         ENV_SETTINGS="$ENV_SETTINGS -e DISPLAY=$DISPLAY "
     elif [ "$(uname)" = "Darwin" ]; then
-        NET=" -p 9999:9999 "
         ENV_SETTINGS="$ENV_SETTINGS -e DISPLAY=host.docker.internal:${DISPLAY##:}"
         wait_on_cid $CID_FILE 3 xhost_for_container &
     fi
+fi
+
+if [ "$(uname)" = "Darwin" ]; then
+    NET=" -p 9999:9999 "
 fi
 
 if [ ! -z "$ALPHA_API_HOST" ]; then
