@@ -91,7 +91,8 @@ wait_on_cid () {
 xhost_for_container () {
     CID=$1
     NET=$(docker inspect --format "{{ .NetworkSettings.IPAddress }}" $CID 2>/dev/null)
-    xhost $NET 2>&1 > /dev/null
+    xhost +localhost 2>&1 > /dev/null
+    xhost +$NET 2>&1 > /dev/null
 }
 
 docker_check
