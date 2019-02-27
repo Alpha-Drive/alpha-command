@@ -155,22 +155,29 @@ if [ "$1" = "login" ]; then
         start_url_open $BROWSER_LAUNCH login &
     fi
 elif [ "$1" = "init" ]; then
-    TEMPLATE=$2
+    T_NAME=$2
+
+    if [ "$T_NAME" = "demo" ]; then
+        TEMPLATE=alphadrive-samples
+    elif [ "$T_NAME" = "scenarios" ]; then
+        TEMPLATE=scenario_runner
+    fi
+
     if [ ! -z "$TEMPLATE" ]; then
-        if [ -d "$TEMPLATE" ]; then
-            echo "A folder named $TEMPLATE already exists in this directory. Exiting..." >&2
+        if [ -d "$T_NAME" ]; then
+            echo "A folder named $T_NAME already exists in this directory. Exiting..." >&2
             exit
         fi
-        mkdir $TEMPLATE &&
+        mkdir $T_NAME &&
             curl -s --location -o - https://github.com/Alpha-Drive/$TEMPLATE/archive/master.tar.gz |
-                (cd $TEMPLATE && tar -xzf - --strip 1) &&
-            echo "A sample project has been created in the folder named $TEMPLATE."
+                (cd $T_NAME && tar -xzf - --strip 1) &&
+            echo "A sample project has been created in the folder named $T_NAME."
         exit
     else
         echo "Template argument missing." >&2
         echo "Usage: alpha init <TEMPLATE> where template is one of:" >&2
         echo
-        echo "  alphadrive-samples, scenario_runner " >&2
+        echo "  demo, scenarios " >&2
         echo
         exit
     fi
