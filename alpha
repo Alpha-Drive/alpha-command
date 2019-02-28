@@ -178,11 +178,10 @@ elif [ "$1" = "init" ]; then
             echo "A sample project has been created in the folder named $T_NAME."
         exit
     else
-        echo "Template argument missing." >&2
-        echo "Usage: alpha init <TEMPLATE> where template is one of:" >&2
-        echo
-        echo "  demo, scenarios " >&2
-        echo
+        echo "alpha init: missing project template argument" >&2
+        echo "Usage: alpha init <TEMPLATE>"
+        echo 
+        echo "TEMPLATE options are: demo, scenarios " >&2
         exit
     fi
 fi
