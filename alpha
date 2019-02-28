@@ -64,8 +64,12 @@ visit https://help.alphadrive.ai for more info."
         exit 100
     fi
     if docker ps 2>&1 | grep -q "permission denied" ; then
-        echo "[WARNING] Your docker appears to require root access. We will use sudo to execute your agent."
+        echo "[WARNING] Your docker appears to require root access. Alpha Drive currently requires your user"
+        echo "to be able to execute docker without sudo. Please add your user to the docker group."
+        echo
+        echo "See: https://docs.docker.com/install/linux/linux-postinstall/ "
         SUDO_REQUIRED=true
+        exit
     fi
 }
 
@@ -174,16 +178,6 @@ elif [ "$1" = "init" ]; then
         echo
         exit
     fi
-#elif [ "$1" = "drive" ]; then
-    # if [ -z "$BROWSER_LAUNCH" ]; then
-    #     browser_warning_message "viewing your session"
-    # else
-    #     start_url_open $BROWSER_LAUNCH vnc &
-    # fi
-fi
-
-if [ ! -z "$SUDO_PREFIX" ]; then
-    RUN_AS_USER="-u $USER"
 fi
 
 DOCKER_CMD="docker run $NET $RUN_AS_USER --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS "
