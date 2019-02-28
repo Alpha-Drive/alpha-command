@@ -64,8 +64,12 @@ visit https://help.alphadrive.ai for more info."
         exit 100
     fi
     if docker ps 2>&1 | grep -q "permission denied" ; then
-        echo "[WARNING] Your docker appears to require root access. We will use sudo to execute your agent."
+        echo "[WARNING] Your docker appears to require root access. Alpha Drive currently requires your user"
+        echo "to be able to execute docker without sudo. Please add your user to the docker group."
+        echo
+        echo "See: https://docs.docker.com/install/linux/linux-postinstall/ "
         SUDO_REQUIRED=true
+        exit
     fi
 }
 
@@ -132,10 +136,6 @@ if [ ! -z "$DISPLAY" ]; then
     fi
 fi
 
-if [ "$(uname)" = "Darwin" ]; then
-    NET=" -p 9999:9999 "
-fi
-
 if [ ! -z "$ALPHA_API_HOST" ]; then
     ENV_SETTINGS="$ENV_SETTINGS -e ALPHA_API_HOST=$ALPHA_API_HOST "
 fi
@@ -149,19 +149,47 @@ MOUNTS="$DEV_MOUNTS $X_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/
 IMAGE=${IMAGE:-alphadrive/cli:0.5.7}
 
 if [ "$1" = "login" ]; then
+    if [ "$(uname)" = "Darwin" ]; then
+        NET=" -p 9999:9999 "
+    fi
+
     if [ -z "$BROWSER_LAUNCH" ]; then
         browser_warning_message authentication
     else
         start_url_open $BROWSER_LAUNCH login &
     fi
-#elif [ "$1" = "drive" ]; then
-    # if [ -z "$BROWSER_LAUNCH" ]; then
-    #     browser_warning_message "viewing your session"
-    # else
-    #     start_url_open $BROWSER_LAUNCH vnc &
-    # fi
+elif [ "$1" = "init" ]; then
+    T_NAME=$2
+
+    if [ "$T_NAME" = "demo" ]; then
+        TEMPLATE=alphadrive-samples
+    elif [ "$T_NAME" = "scenarios" ]; then
+        TEMPLATE=scenario_runner
+    fi
+
+    if [ ! -z "$TEMPLATE" ]; then
+        if [ -d "$T_NAME" ]; then
+            echo "A folder named $T_NAME already exists in this directory. Exiting..." >&2
+            exit
+        fi
+        mkdir $T_NAME &&
+            curl -s --location -o - https://github.com/Alpha-Drive/$TEMPLATE/archive/master.tar.gz |
+                (cd $T_NAME && tar -xzf - --strip 1) &&
+            echo "A sample project has been created in the folder named $T_NAME."
+        exit
+    else
+        echo "alpha init: missing project template argument" >&2
+        echo "Usage: alpha init <TEMPLATE>"
+        echo 
+        echo "TEMPLATE options are: demo, scenarios " >&2
+        exit
+    fi
 fi
 
-DOCKER_CMD="docker run $NET  --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS "
+if [ ! -z "$SUDO_PREFIX" ]; then
+    ENV_SETTINGS="$ENV_SETTINGS -e LOCAL_USER_ID=$UID"
+fi
+
+DOCKER_CMD="docker run $NET --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS "
 
 $SUDO_PREFIX $DOCKER_CMD -it $MOUNTS $ENTRYPOINT $IMAGE $@
