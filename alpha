@@ -186,6 +186,10 @@ elif [ "$1" = "init" ]; then
     fi
 fi
 
-DOCKER_CMD="docker run $NET $RUN_AS_USER --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS "
+if [ ! -z "$SUDO_PREFIX" ]; then
+    ENV_SETTINGS="$ENV_SETTINGS -e LOCAL_USER_ID=$UID"
+fi
+
+DOCKER_CMD="docker run $NET --cidfile $CID_FILE --name $DOCKER_NAME --rm --init $ENV_SETTINGS "
 
 $SUDO_PREFIX $DOCKER_CMD -it $MOUNTS $ENTRYPOINT $IMAGE $@
