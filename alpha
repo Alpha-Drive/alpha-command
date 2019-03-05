@@ -183,7 +183,10 @@ elif [ "$1" = "init" ]; then
         exit
     fi
 fi
+if [ "$(uname)" = "Linux" ]; then
+    ENV_SETTINGS="--init -u $(id -u):$(id -g) -e HOME=/home/carla $ENV_SETTINGS"
+fi
 
-DOCKER_CMD="docker run $NET --cidfile $CID_FILE --name $DOCKER_NAME --rm --init -u $(id -u):$(id -g) $ENV_SETTINGS "
+DOCKER_CMD="docker run $NET --cidfile $CID_FILE --name $DOCKER_NAME --rm $ENV_SETTINGS "
 
 $SUDO_PREFIX $DOCKER_CMD -it $MOUNTS $ENTRYPOINT $IMAGE $@
