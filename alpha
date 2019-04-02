@@ -41,7 +41,7 @@ BASE_URL=http://localhost:9999
 
 browser_warning_message() {
     MESSAGE=${1:-continue}
-    echo "[WARNING] Unable to determine browser. 
+    echo "[WARNING] Unable to determine browser.
           Please visit urls in your browser when prompted below for $MESSAGE."
 }
 
@@ -144,7 +144,7 @@ fi
 BROWSER_LAUNCH=$(get_browser)
 
 MOUNTS="$DEV_MOUNTS $X_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR"
-IMAGE=${IMAGE:-alphadrive/cli:0.5.7}
+IMAGE=${IMAGE:-alphadrive/cli:0.5.9}
 
 if [ "$1" = "login" ]; then
     if [ "$(uname)" = "Darwin" ]; then
@@ -178,7 +178,7 @@ elif [ "$1" = "init" ]; then
     else
         echo "alpha init: missing project template argument" >&2
         echo "Usage: alpha init <TEMPLATE>"
-        echo 
+        echo
         echo "TEMPLATE options are: demo, scenarios " >&2
         exit
     fi
