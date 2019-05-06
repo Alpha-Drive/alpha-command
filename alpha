@@ -143,7 +143,6 @@ fi
 
 BROWSER_LAUNCH=$(get_browser)
 
-MOUNTS="$DEV_MOUNTS $X_MOUNTS -v ${PWD}:/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR"
 IMAGE=${IMAGE:-alphadrive/cli:0.5.9}
 
 if [ "$1" = "login" ]; then
@@ -188,5 +187,10 @@ if [ "$(uname)" = "Linux" ]; then
 fi
 
 DOCKER_CMD="docker run $NET --cidfile $CID_FILE --name $DOCKER_NAME --rm $ENV_SETTINGS "
+MOUNTS=""
 
-$SUDO_PREFIX $DOCKER_CMD -it $MOUNTS $ENTRYPOINT $IMAGE $@
+$SUDO_PREFIX $DOCKER_CMD -it \
+             $DEV_MOUNTS \
+             $X_MOUNTS \
+             -v "$PWD":/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR \
+             $ENTRYPOINT $IMAGE $@
