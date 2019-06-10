@@ -189,8 +189,9 @@ fi
 DOCKER_CMD="docker run $NET --cidfile $CID_FILE --name $DOCKER_NAME --rm $ENV_SETTINGS "
 MOUNTS=""
 
+
 $SUDO_PREFIX $DOCKER_CMD -it \
              $DEV_MOUNTS \
              $X_MOUNTS \
              -v "$PWD":/home/carla/user-agent -v $CONFIG:/home/carla/$CONFIG_DIR \
-             $ENTRYPOINT $IMAGE $@
+             $ENTRYPOINT $IMAGE "$@"
