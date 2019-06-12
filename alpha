@@ -77,7 +77,7 @@ config_check() {
         mkdir $CONFIG
     fi
 }
-
+config_check
 wait_on_cid () {
     CID_FILE=$1
     INTERVAL=$2
